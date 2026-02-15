@@ -98,3 +98,79 @@ class ChunkExtraction(BaseModel):
     f2_quality: ExtractedValue | None = Field(default=None, description="F.2. Требования к качеству воды")
     f3_flow: ExtractedValue | None = Field(default=None, description="F.3. Расход, давление, температура воды")
     f4_connection: ExtractedValue | None = Field(default=None, description="F.4. Точка подключения воды")
+    f5_drainage: ExtractedValue | None = Field(default=None, description="F.5. Канализация")
+    f6_drain_point: ExtractedValue | None = Field(default=None, description="F.6. Точка слива")
+    f7_coolant: ExtractedValue | None = Field(default=None, description="F.7. СОЖ")
+    f8_periodicity: ExtractedValue | None = Field(default=None, description="F.8. Периодичность потребления")
+
+    # G. Вентиляция, экология и шум
+    g1_exhaust: ExtractedValue | None = Field(default=None, description="G.1. Локальные отсосы")
+    g2_emissions: ExtractedValue | None = Field(default=None, description="G.2. Состав выбросов")
+    g3_noise: ExtractedValue | None = Field(default=None, description="G.3. Уровень шума (дБА)")
+    g4_vibration: ExtractedValue | None = Field(default=None, description="G.4. Вибрация")
+
+    # H. Автоматизация и безопасность
+    h1_it: ExtractedValue | None = Field(default=None, description="H.1. IT-инфраструктура")
+    h2_safety: ExtractedValue | None = Field(default=None, description="H.2. Интеграция в систему безопасности")
+    h3_signaling: ExtractedValue | None = Field(default=None, description="H.3. Световая/звуковая сигнализация")
+    h4_climate: ExtractedValue | None = Field(default=None, description="H.4. Микроклимат в зоне установки")
+
+
+CHECKLIST_FIELDS = [
+    ("a1_name", "A.1. Наименование и назначение"),
+    ("a2_model", "A.2. Модель / полный артикул"),
+    ("a3_manufacturer", "A.3. Производитель, страна"),
+    ("a4_year_serial", "A.4. Год выпуска и серийный номер"),
+    ("b1_dimensions", "B.1. Габариты (Д×Ш×В, мм)"),
+    ("b2_opening", "B.2. Минимальный монтажный проём"),
+    ("b3_weight", "B.3. Масса нетто / с жидкостями"),
+    ("b4_heaviest_part", "B.4. Масса тяжелейшей части"),
+    ("b5_rigging", "B.5. Точки строповки и ЦТ"),
+    ("c1_installation", "C.1. Тип установки"),
+    ("c2_foundation", "C.2. Размеры фундамента"),
+    ("c3_pits", "C.3. Приямки / подиум"),
+    ("c4_loads", "C.4. Статические/динамические нагрузки"),
+    ("c5_service_zone", "C.5. Зона обслуживания"),
+    ("c6_floor", "C.6. Требования к полу"),
+    ("c7_construction", "C.7. Требования к конструкциям"),
+    ("d1_power", "D.1. P_уст и P_потр (кВт)"),
+    ("d2_voltage", "D.2. Напряжение, фазность, частота, ток"),
+    ("d3_reliability", "D.3. Категория надёжности, ИБП"),
+    ("d4_startup", "D.4. Тип пуска, cos φ, Ки"),
+    ("d5_heat", "D.5. Тепловыделения (кВт)"),
+    ("d6_protection", "D.6. Степень защиты (IP), класс зоны"),
+    ("d7_grounding", "D.7. Тип заземления"),
+    ("d8_cable_entry", "D.8. Точка ввода кабеля"),
+    ("e1_pressure", "E.1. Давление на входе (МПа)"),
+    ("e2_flow", "E.2. Расход (м³/ч или н.л/мин)"),
+    ("e3_quality", "E.3. Качество среды"),
+    ("e4_connection", "E.4. Точка подключения"),
+    ("f1_purpose", "F.1. Назначение воды"),
+    ("f2_quality", "F.2. Требования к качеству воды"),
+    ("f3_flow", "F.3. Расход, давление, температура воды"),
+    ("f4_connection", "F.4. Точка подключения воды"),
+    ("f5_drainage", "F.5. Канализация"),
+    ("f6_drain_point", "F.6. Точка слива"),
+    ("f7_coolant", "F.7. СОЖ"),
+    ("f8_periodicity", "F.8. Периодичность потребления"),
+    ("g1_exhaust", "G.1. Локальные отсосы"),
+    ("g2_emissions", "G.2. Состав выбросов"),
+    ("g3_noise", "G.3. Уровень шума (дБА)"),
+    ("g4_vibration", "G.4. Вибрация"),
+    ("h1_it", "H.1. IT-инфраструктура"),
+    ("h2_safety", "H.2. Интеграция в систему безопасности"),
+    ("h3_signaling", "H.3. Световая/звуковая сигнализация"),
+    ("h4_climate", "H.4. Микроклимат в зоне установки"),
+]
+
+
+SECTION_GROUPS = {
+    "A": ("A. Идентификация", ["a1_name", "a2_model", "a3_manufacturer", "a4_year_serial"]),
+    "B": ("B. Габариты и логистика заноса", ["b1_dimensions", "b2_opening", "b3_weight", "b4_heaviest_part", "b5_rigging"]),
+    "C": ("C. Строительные требования (АС)", ["c1_installation", "c2_foundation", "c3_pits", "c4_loads", "c5_service_zone", "c6_floor", "c7_construction"]),
+    "D": ("D. Электроснабжение и тепло (ЭМ / ОВ)", ["d1_power", "d2_voltage", "d3_reliability", "d4_startup", "d5_heat", "d6_protection", "d7_grounding", "d8_cable_entry"]),
+    "E": ("E. Сжатый воздух и газы (ТХ)", ["e1_pressure", "e2_flow", "e3_quality", "e4_connection"]),
+    "F": ("F. Водоснабжение и канализация (ВК)", ["f1_purpose", "f2_quality", "f3_flow", "f4_connection", "f5_drainage", "f6_drain_point", "f7_coolant", "f8_periodicity"]),
+    "G": ("G. Вентиляция, экология и шум (ОВ)", ["g1_exhaust", "g2_emissions", "g3_noise", "g4_vibration"]),
+    "H": ("H. Автоматизация и безопасность (АТХ / СС)", ["h1_it", "h2_safety", "h3_signaling", "h4_climate"]),
+}

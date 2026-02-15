@@ -98,3 +98,8 @@ def create_chunks(files: list[ScannedFile], chunk_size: int = 7, overlap: int = 
                 file_format=sf.format_label,
                 page_start=1 if ext in ("jpg", "jpeg", "png", "bmp", "tiff", "tif") else None,
                 page_end=1 if ext in ("jpg", "jpeg", "png", "bmp", "tiff", "tif") else None,
+                data=data,
+                mime_type=MIME_TYPES.get(ext, "application/octet-stream"),
+            ))
+
+    return chunks
