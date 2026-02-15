@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QDragEnterEvent, QDropEvent
 
-from config import load_config, SUPPORTED_EXTENSIONS, FIXED_MODEL
+from config import load_config, SUPPORTED_EXTENSIONS
 from scanner.folder_scanner import scan_path, ScannedFile
 from worker import PipelineWorker
 
@@ -19,7 +19,7 @@ from worker import PipelineWorker
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(f"Factum - Анализ паспортов оборудования  [{FIXED_MODEL}]")
+        self.setWindowTitle("Factum - Анализ паспортов оборудования")
         self.setMinimumSize(900, 700)
         self.setAcceptDrops(True)
 
