@@ -1,4 +1,4 @@
-"""Normocontrol — запуск приложения.
+"""Factum — запуск приложения.
 
 Этот файл явно добавляет пути к библиотекам,
 чтобы приложение запускалось двойным кликом мыши.
@@ -66,8 +66,8 @@ try:
     from gui.main_window import MainWindow
 
     app = QApplication(sys.argv)
-    app.setApplicationName("Normocontrol")
-    app.setOrganizationName("Normocontrol")
+    app.setApplicationName("Factum")
+    app.setOrganizationName("Factum")
 
     window = MainWindow()
     window.show()
@@ -78,7 +78,7 @@ except Exception:
     # Записать ошибку в файл рядом с приложением
     error_file = os.path.join(project_dir, "error_log.txt")
     with open(error_file, "w", encoding="utf-8") as f:
-        f.write("Normocontrol — ошибка запуска\n")
+        f.write("Factum — ошибка запуска\n")
         f.write("=" * 40 + "\n\n")
         f.write(f"Python: {sys.executable}\n\n")
         f.write(f"sys.path:\n")

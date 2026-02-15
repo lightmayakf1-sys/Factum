@@ -1,4 +1,4 @@
-"""Главное окно приложения Normocontrol."""
+"""Главное окно приложения Factum."""
 
 import os
 from pathlib import Path
@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QDragEnterEvent, QDropEvent
 
-from config import load_config, SUPPORTED_EXTENSIONS
+from config import load_config, SUPPORTED_EXTENSIONS, FIXED_MODEL
 from scanner.folder_scanner import scan_path, ScannedFile
 from gui.settings_dialog import SettingsDialog
 from worker import PipelineWorker
@@ -20,7 +20,7 @@ from worker import PipelineWorker
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Normocontrol - Анализ паспортов оборудования")
+        self.setWindowTitle(f"Factum - Анализ паспортов оборудования  [{FIXED_MODEL}]")
         self.setMinimumSize(900, 700)
         self.setAcceptDrops(True)
 
@@ -217,11 +217,23 @@ class MainWindow(QMainWindow):
             self.worker.cancel()
 
     def _on_save(self):
-        if self.last_output_path:
-            QMessageBox.information(
-                self, "Сохранено",
-                f"Карточка сохранена:\n{self.last_output_path}"
-            )
+        if not self.last_output_path or not Path(self.last_output_path).exists():
+            QMessageBox.warning(self, "Ошибка", "Файл карточки не найден.")
+            return
+
+        save_path, _ = QFileDialog.getSaveFileName(
+            self, "Сохранить карточку", self.last_output_path,
+            "Word документ (*.docx)"
+        )
+        if not save_path:
+            return
+
+        if save_path != self.last_output_path:
+            import shutil
+            shutil.copy2(str(self.last_output_path), save_path)
+
+        self.last_output_path = save_path
+        QMessageBox.information(self, "Сохранено", f"Карточка сохранена:\n{save_path}")
 
     def _on_open_word(self):
         if self.last_output_path and Path(self.last_output_path).exists():
@@ -230,9 +242,10 @@ class MainWindow(QMainWindow):
     # --- Signals ---
     def _on_progress(self, stage: int, current: int, total: int, message: str):
         if total > 0:
-            overall = ((stage - 1) * 20) + int((current / total) * 20)
+            stage_weight = 100 / 6
+            overall = int((stage - 1) * stage_weight + (current / total) * stage_weight)
             self.progress_bar.setValue(min(overall, 100))
-        self.progress_label.setText(f"Этап {stage}/5: {message}")
+        self.progress_label.setText(f"Этап {stage}/6: {message}")
 
     def _on_finished(self, success: bool, output_path: str, error: str):
         self.btn_analyze.setEnabled(True)

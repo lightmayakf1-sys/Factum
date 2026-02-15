@@ -1,10 +1,10 @@
-"""Конфигурация приложения Normocontrol."""
+"""Конфигурация приложения Factum."""
 
 import json
 import os
 from pathlib import Path
 
-CONFIG_DIR = Path.home() / ".normocontrol"
+CONFIG_DIR = Path.home() / ".factum"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
 SUPPORTED_EXTENSIONS = {

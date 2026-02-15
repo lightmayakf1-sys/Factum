@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 #
-# PyInstaller spec для Normocontrol.
+# PyInstaller spec для Factum.
 #
-# Сборка:  cd installer && C:/Python314/python.exe -m PyInstaller normocontrol.spec
-# Результат: dist/Normocontrol.exe
+# Сборка:  cd installer && C:/Python314/python.exe -m PyInstaller factum.spec
+# Результат: dist/Factum.exe
 
 import os
 import sys
@@ -128,7 +128,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Normocontrol',
+    name='Factum',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -141,5 +141,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=os.path.join(PROJECT_ROOT, 'normocontrol.ico'),
+    icon=os.path.join(PROJECT_ROOT, 'factum.ico'),
 )

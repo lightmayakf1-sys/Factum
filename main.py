@@ -1,4 +1,4 @@
-"""Normocontrol — Анализ паспортов оборудования.
+"""Factum — Анализ паспортов оборудования.
 
 Точка входа приложения.
 """
@@ -22,8 +22,8 @@ logging.basicConfig(
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("Normocontrol")
-    app.setOrganizationName("Normocontrol")
+    app.setApplicationName("Factum")
+    app.setOrganizationName("Factum")
 
     window = MainWindow()
     window.show()

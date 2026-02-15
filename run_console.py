@@ -1,4 +1,4 @@
-"""Normocontrol — запуск через python.exe.
+"""Factum — запуск через python.exe.
 
 Скрывает консольное окно сразу после старта,
 принудительно подключает user site-packages (путь передаётся из .bat),
@@ -44,8 +44,8 @@ try:
     from gui.main_window import MainWindow
 
     app = QApplication(sys.argv[:1])  # Без лишних аргументов
-    app.setApplicationName("Normocontrol")
-    app.setOrganizationName("Normocontrol")
+    app.setApplicationName("Factum")
+    app.setOrganizationName("Factum")
 
     window = MainWindow()
     window.show()
@@ -63,7 +63,7 @@ except Exception:
 
     error_file = os.path.join(project_dir, "error_log.txt")
     with open(error_file, "w", encoding="utf-8") as f:
-        f.write("Normocontrol — ошибка запуска\n")
+        f.write("Factum — ошибка запуска\n")
         f.write("=" * 40 + "\n\n")
         f.write(f"Python: {sys.executable}\n\n")
         f.write(f"argv: {sys.argv}\n\n")

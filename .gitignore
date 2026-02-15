@@ -6,7 +6,7 @@ libs/
 installer/build/
 installer/dist/
 *.exe
-.normocontrol/
+.factum/
 _originals/
 _temp_*
 debug_path.txt

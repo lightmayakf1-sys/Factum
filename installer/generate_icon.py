@@ -1,7 +1,7 @@
-"""Генерация иконки Normocontrol (normocontrol.ico).
+"""Генерация иконки Factum (factum.ico).
 
 Создаёт ICO-файл с несколькими размерами (16, 32, 48, 64, 128, 256).
-Дизайн: тёмно-синий щит/документ с белой буквой «N» и зелёной галочкой.
+Дизайн: тёмно-синий щит/документ с белой буквой «F» и зелёной галочкой.
 """
 
 from PIL import Image, ImageDraw, ImageFont
@@ -49,7 +49,7 @@ def create_icon(size: int) -> Image.Image:
         fill=fold_color,
     )
 
-    # === БУКВА «N» — белая, крупная ===
+    # === БУКВА «F» — белая, крупная ===
     n_color = (255, 255, 255, 255)
 
     # Попытка использовать системный шрифт
@@ -72,8 +72,8 @@ def create_icon(size: int) -> Image.Image:
     if font is None:
         font = ImageFont.load_default()
 
-    # Центрируем букву N (чуть левее и ниже центра из-за загиба)
-    text = "N"
+    # Центрируем букву F (чуть левее и ниже центра из-за загиба)
+    text = "F"
     bbox = draw.textbbox((0, 0), text, font=font)
     tw = bbox[2] - bbox[0]
     th = bbox[3] - bbox[1]
@@ -137,7 +137,7 @@ def main():
     sizes = [16, 32, 48, 64, 128, 256]
     images = []
 
-    print("Генерация иконки Normocontrol...")
+    print("Генерация иконки Factum...")
     for sz in sizes:
         img = create_icon(sz)
         images.append(img)
@@ -146,7 +146,7 @@ def main():
     # Путь к .ico — в корне проекта
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
-    ico_path = os.path.join(project_root, "normocontrol.ico")
+    ico_path = os.path.join(project_root, "factum.ico")
 
     # Сохраняем ICO (первое изображение = 256x256, остальные как доп. размеры)
     images[-1].save(
@@ -160,7 +160,7 @@ def main():
     print(f"Размеры: {', '.join(f'{s}x{s}' for s in sizes)}")
 
     # Также сохранить PNG 256x256 для превью
-    png_path = os.path.join(script_dir, "normocontrol_preview.png")
+    png_path = os.path.join(script_dir, "factum_preview.png")
     images[-1].save(png_path, format="PNG")
     print(f"Превью: {png_path}")
 

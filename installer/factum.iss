@@ -1,5 +1,5 @@
 ; =============================================================================
-; Normocontrol — Inno Setup Installer Script
+; Factum — Inno Setup Installer Script
 ; Версия: 2.0
 ; =============================================================================
 ;
@@ -7,17 +7,17 @@
 ;   1. Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 ;   2. Открыть этот файл в Inno Setup Compiler
 ;   3. Menu -> Build -> Compile (Ctrl+F9)
-;   4. Готовый инсталлятор: installer\Output\Normocontrol_Setup.exe
+;   4. Готовый инсталлятор: installer\Output\Factum_Setup.exe
 ;
 ; Предусловие для работы приложения:
 ;   Python 3.14 установлен в C:\Python314\
 ; =============================================================================
 
-#define MyAppName "Normocontrol"
+#define MyAppName "Factum"
 #define MyAppVersion "2.0"
-#define MyAppPublisher "Normocontrol"
+#define MyAppPublisher "Factum"
 #define MyAppURL ""
-#define MyAppExeName "Normocontrol.bat"
+#define MyAppExeName "Factum.bat"
 ; Корень проекта — на одну папку выше от installer\
 #define ProjectRoot ".."
 
@@ -33,12 +33,12 @@ DefaultGroupName={#MyAppName}
 LicenseFile=LICENSE.txt
 ; Выходная папка и имя файла инсталлятора
 OutputDir=Output
-OutputBaseFilename=Normocontrol_Setup_{#MyAppVersion}
+OutputBaseFilename=Factum_Setup_{#MyAppVersion}
 ; Сжатие
 Compression=lzma2/ultra64
 SolidCompression=yes
 ; Иконка инсталлятора
-SetupIconFile={#ProjectRoot}\normocontrol.ico
+SetupIconFile={#ProjectRoot}\factum.ico
 ; Минимальная версия Windows
 MinVersion=10.0
 ; Архитектура
@@ -55,7 +55,7 @@ PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 ; Информация для «Установка и удаление программ»
 UninstallDisplayName={#MyAppName}
-UninstallDisplayIcon={app}\normocontrol.ico
+UninstallDisplayIcon={app}\factum.ico
 
 [Languages]
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
@@ -74,7 +74,7 @@ Source: "{#ProjectRoot}\worker.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ProjectRoot}\requirements.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 ; === Лаунчер (.bat) ===
-Source: "{#ProjectRoot}\Normocontrol.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ProjectRoot}\Factum.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 ; === Установщик зависимостей ===
 Source: "install_deps.bat"; DestDir: "{app}"; Flags: ignoreversion
@@ -88,13 +88,13 @@ Source: "{#ProjectRoot}\output\*.py"; DestDir: "{app}\output"; Flags: ignorevers
 Source: "{#ProjectRoot}\gui\*.py"; DestDir: "{app}\gui"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; === Иконка ===
-Source: "{#ProjectRoot}\normocontrol.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ProjectRoot}\factum.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Ярлык в меню Пуск — запуск через .bat
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\normocontrol.ico"; Comment: "Анализ паспортов оборудования"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\factum.ico"; Comment: "Анализ паспортов оборудования"
 ; Ярлык на Рабочем столе (опционально)
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\normocontrol.ico"; Comment: "Анализ паспортов оборудования"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\factum.ico"; Comment: "Анализ паспортов оборудования"; Tasks: desktopicon
 ; Ярлык установки зависимостей в меню Пуск
 Name: "{group}\Установить библиотеки"; Filename: "{app}\install_deps.bat"; WorkingDir: "{app}"; Comment: "Установка/обновление Python-библиотек"
 ; Ярлык деинсталляции в меню Пуск
@@ -132,10 +132,10 @@ begin
   begin
     if MsgBox(
       'Python 3.14 не найден в C:\Python314\' + #13#10 + #13#10 +
-      'Для работы Normocontrol необходим Python 3.14.' + #13#10 +
+      'Для работы Factum необходим Python 3.14.' + #13#10 +
       'Скачайте его с https://www.python.org/downloads/' + #13#10 +
       'и установите в папку C:\Python314\' + #13#10 + #13#10 +
-      'Продолжить установку Normocontrol без Python?' + #13#10 +
+      'Продолжить установку Factum без Python?' + #13#10 +
       '(библиотеки можно будет установить позже)',
       mbConfirmation, MB_YESNO) = IDNO then
     begin

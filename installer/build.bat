@@ -2,7 +2,7 @@
 chcp 65001 >nul 2>&1
 echo.
 echo ============================================
-echo   Normocontrol — сборка standalone .exe
+echo   Factum — сборка standalone .exe
 echo ============================================
 echo.
 
@@ -27,14 +27,14 @@ echo Запускаю сборку...
 echo Это может занять 2-5 минут.
 echo.
 
-C:\Python314\python.exe -m PyInstaller --clean --noconfirm normocontrol.spec
+C:\Python314\python.exe -m PyInstaller --clean --noconfirm factum.spec
 
 echo.
 if %errorlevel% equ 0 (
     echo ============================================
     echo   Сборка завершена успешно!
     echo.
-    echo   Файл: %~dp0dist\Normocontrol.exe
+    echo   Файл: %~dp0dist\Factum.exe
     echo ============================================
 ) else (
     echo ============================================
