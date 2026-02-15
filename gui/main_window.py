@@ -13,7 +13,6 @@ from PyQt6.QtGui import QIcon, QDragEnterEvent, QDropEvent
 
 from config import load_config, SUPPORTED_EXTENSIONS, FIXED_MODEL
 from scanner.folder_scanner import scan_path, ScannedFile
-from gui.settings_dialog import SettingsDialog
 from worker import PipelineWorker
 
 
@@ -51,10 +50,6 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self.btn_clear)
 
         top_layout.addStretch()
-
-        self.btn_settings = QPushButton("Настройки")
-        self.btn_settings.clicked.connect(self._on_settings)
-        top_layout.addWidget(self.btn_settings)
 
         main_layout.addLayout(top_layout)
 
@@ -167,10 +162,6 @@ class MainWindow(QMainWindow):
         self.log_text.clear()
         self.status_label.setText("")
 
-    def _on_settings(self):
-        dialog = SettingsDialog(self)
-        dialog.exec()
-
     def _on_analyze(self):
         if not self.files:
             return
@@ -179,7 +170,8 @@ class MainWindow(QMainWindow):
         if not config.get("api_key"):
             QMessageBox.warning(
                 self, "API ключ не настроен",
-                "Откройте Настройки и введите API ключ Google Gemini."
+                "Укажите API ключ Google Gemini в файле конфигурации\n"
+                "(~/.factum/config.json, поле \"api_key\")."
             )
             return
 

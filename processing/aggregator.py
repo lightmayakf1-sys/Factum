@@ -47,9 +47,9 @@ def _deduplicate_overlaps(values: list[ExtractedValue], overlap: int = 2) -> lis
 
     При overlap чанков одни и те же страницы обрабатываются Gemini дважды.
     Gemini недетерминистичен — может извлечь РАЗНЫЕ значения с одних страниц.
-    Если два значения из одного файла и страницы близки (разница ≤ overlap) —
-    это повторное извлечение, а не настоящий конфликт.
-    Оставляем первое (из более раннего чанка — у него эта страница «основная»).
+    Если два значения из одного файла, страницы близки (разница ≤ overlap)
+    И значения совпадают — это повторное извлечение (дубль).
+    Если значения РАЗНЫЕ (например, 380В и 220В с одной страницы) — оба сохраняем.
     """
     if len(values) <= 1:
         return values
@@ -62,11 +62,13 @@ def _deduplicate_overlaps(values: list[ExtractedValue], overlap: int = 2) -> lis
             # 1. Один и тот же файл
             # 2. Обе страницы известны
             # 3. Страницы близки (в пределах overlap)
+            # 4. Значения совпадают (разные значения с одной страницы — НЕ дубли)
             if (existing.source.file == v.source.file
                     and existing.source.file
                     and existing.source.page is not None
                     and v.source.page is not None
-                    and abs(existing.source.page - v.source.page) <= overlap):
+                    and abs(existing.source.page - v.source.page) <= overlap
+                    and existing.value.strip() == v.value.strip()):
                 is_overlap_dup = True
                 logger.debug(
                     f"Overlap-дубль отброшен для {v.source.file}: "
