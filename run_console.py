@@ -23,12 +23,34 @@ project_dir = os.path.dirname(os.path.abspath(__file__))
 if project_dir not in sys.path:
     sys.path.insert(0, project_dir)
 
+# Подключить локальные зависимости (_libs) — без кириллицы, всегда доступны
+_libs_dir = os.path.join(project_dir, "_libs")
+if os.path.isdir(_libs_dir) and _libs_dir not in sys.path:
+    sys.path.insert(0, _libs_dir)
+
 # Принудительно подключить user site-packages
-# Путь передаётся как аргумент из .bat файла (Windows раскрывает %APPDATA% корректно)
-if len(sys.argv) > 1:
-    user_site = sys.argv[1]
-    if user_site not in sys.path:
-        sys.path.insert(0, user_site)
+# Проблема: при запуске через `start /min` из .bat Windows не может обратиться
+# к папкам с кириллицей в пути. Решение — конвертировать путь в короткий (8.3) формат.
+def _get_short_path(long_path: str) -> str:
+    """Конвертировать путь в короткий (8.3) формат Windows для обхода проблем с кириллицей."""
+    try:
+        buf = ctypes.create_unicode_buffer(500)
+        r = ctypes.windll.kernel32.GetShortPathNameW(long_path, buf, 500)
+        if r > 0:
+            return buf.value
+    except Exception:
+        pass
+    return long_path
+
+try:
+    import site as _site
+    _user_site = _site.getusersitepackages()
+    if _user_site:
+        _user_site_short = _get_short_path(_user_site)
+        if _user_site_short not in sys.path and _user_site not in sys.path:
+            sys.path.insert(0, _user_site_short)
+except Exception:
+    pass
 
 # Запустить приложение
 try:

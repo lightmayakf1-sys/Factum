@@ -18,3 +18,6 @@ test_result.txt
 nul
 *.docx
 .claude/
+_libs/
+diag_log.txt
+error_log.txt
