@@ -42,6 +42,28 @@ def aggregate_extractions(
     return aggregated
 
 
+_OCR_DIGIT_PAIRS = {
+    ('3', '5'), ('5', '3'), ('3', '8'), ('8', '3'),
+    ('5', '8'), ('8', '5'), ('6', '0'), ('0', '6'),
+    ('1', '7'), ('7', '1'),
+}
+
+
+def _are_ocr_variants(a: str, b: str) -> bool:
+    """Два значения отличаются только OCR-подобными подменами цифр (≤2 различия)."""
+    a_s, b_s = a.strip(), b.strip()
+    if len(a_s) != len(b_s):
+        return False
+    diffs = 0
+    for ca, cb in zip(a_s, b_s):
+        if ca != cb:
+            if (ca, cb) in _OCR_DIGIT_PAIRS:
+                diffs += 1
+            else:
+                return False
+    return 1 <= diffs <= 2
+
+
 def _deduplicate_overlaps(values: list[ExtractedValue], overlap: int = 2) -> list[ExtractedValue]:
     """Убрать дубли из перекрывающихся чанков одного файла.
 
@@ -50,25 +72,26 @@ def _deduplicate_overlaps(values: list[ExtractedValue], overlap: int = 2) -> lis
     Если два значения из одного файла, страницы близки (разница ≤ overlap)
     И значения совпадают — это повторное извлечение (дубль).
     Если значения РАЗНЫЕ (например, 380В и 220В с одной страницы) — оба сохраняем.
+    Если значения — OCR-варианты (3↔5, 6↔0 и т.д.) — оставляем более надёжное.
     """
     if len(values) <= 1:
         return values
 
+    confidence_order = {"high": 0, "medium": 1, "low": 2}
     kept: list[ExtractedValue] = []
     for v in values:
         is_overlap_dup = False
-        for existing in kept:
-            # Условия overlap-дубля:
-            # 1. Один и тот же файл
-            # 2. Обе страницы известны
-            # 3. Страницы близки (в пределах overlap)
-            # 4. Значения совпадают (разные значения с одной страницы — НЕ дубли)
-            if (existing.source.file == v.source.file
+        for i, existing in enumerate(kept):
+            # Общие условия overlap: один файл, обе страницы известны, страницы близки
+            if not (existing.source.file == v.source.file
                     and existing.source.file
                     and existing.source.page is not None
                     and v.source.page is not None
-                    and abs(existing.source.page - v.source.page) <= overlap
-                    and existing.value.strip() == v.value.strip()):
+                    and abs(existing.source.page - v.source.page) <= overlap):
+                continue
+
+            # Точное совпадение — дубль
+            if existing.value.strip() == v.value.strip():
                 is_overlap_dup = True
                 logger.debug(
                     f"Overlap-дубль отброшен для {v.source.file}: "
@@ -76,6 +99,27 @@ def _deduplicate_overlaps(values: list[ExtractedValue], overlap: int = 2) -> lis
                     f"≈ {existing.value!r} (стр.{existing.source.page})"
                 )
                 break
+
+            # OCR-вариант — оставить более надёжное, пометить как low
+            if _are_ocr_variants(existing.value, v.value):
+                is_overlap_dup = True
+                existing_conf = confidence_order.get(existing.source.confidence, 99)
+                v_conf = confidence_order.get(v.source.confidence, 99)
+                if v_conf < existing_conf:
+                    # Новое значение надёжнее — заменить
+                    v.note = (v.note + "; " if v.note else "") + f"OCR-вариант отброшен: {existing.value!r}"
+                    v.source.confidence = "low"
+                    kept[i] = v
+                else:
+                    existing.note = (existing.note + "; " if existing.note else "") + f"OCR-вариант отброшен: {v.value!r}"
+                    existing.source.confidence = "low"
+                logger.warning(
+                    f"OCR-вариант в overlap для {v.source.file}: "
+                    f"{v.value!r} (стр.{v.source.page}) vs "
+                    f"{existing.value!r} (стр.{existing.source.page})"
+                )
+                break
+
         if not is_overlap_dup:
             kept.append(v)
     return kept
@@ -148,9 +192,26 @@ def apply_verification(
         (обновлённые данные, список примечаний)
     """
     notes = []
+    label_map = dict(CHECKLIST_FIELDS)
 
     if verification is None:
         return resolved, notes
+
+    # Применить исправления значений (OCR-коррекции из верификации)
+    for item in verification.get("corrections", []):
+        field = item.get("field", "")
+        corrected_value = item.get("corrected_value")
+        issue = item.get("issue", "")
+        if field in resolved and resolved[field] is not None and corrected_value:
+            old_value = resolved[field].value
+            resolved[field].value = corrected_value
+            resolved[field].note = (
+                (resolved[field].note + "; " if resolved[field].note else "")
+                + f"[ИСПРАВЛЕНО] {issue} (было: {old_value})"
+            )
+            resolved[field].source.confidence = "medium"
+            notes.append(f"{label_map.get(field, field)} — исправлено: {issue}")
+            logger.info(f"Коррекция {field}: {old_value!r} -> {corrected_value!r}")
 
     # Добавить дополнительные значения
     for item in verification.get("additional_values", []):

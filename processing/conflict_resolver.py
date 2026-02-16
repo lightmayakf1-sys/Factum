@@ -28,6 +28,10 @@ def resolve_conflict(values: list[ExtractedValue]) -> ExtractedValue:
     def sort_key(v: ExtractedValue) -> tuple:
         priority = SOURCE_PRIORITY.get(v.source.doc_type, 99)
         confidence = confidence_order.get(v.source.confidence, 99)
+        # Штраф для low-confidence: Паспорт low (0+2=2) проигрывает
+        # Каталогу high (1+0=1), но бьёт Чертёж high (3+0=3)
+        if v.source.confidence == "low":
+            priority += 2
         return (priority, confidence)
 
     sorted_values = sorted(values, key=sort_key)
