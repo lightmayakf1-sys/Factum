@@ -82,7 +82,7 @@ Source: "install_deps.bat"; DestDir: "{app}"; Flags: ignoreversion
 ; === Модули Python (рекурсивно) ===
 Source: "{#ProjectRoot}\scanner\*.py"; DestDir: "{app}\scanner"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ProjectRoot}\chunking\*.py"; DestDir: "{app}\chunking"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#ProjectRoot}\gemini\*.py"; DestDir: "{app}\gemini"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#ProjectRoot}\gigachat_api\*.py"; DestDir: "{app}\gigachat_api"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ProjectRoot}\processing\*.py"; DestDir: "{app}\processing"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ProjectRoot}\output\*.py"; DestDir: "{app}\output"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ProjectRoot}\gui\*.py"; DestDir: "{app}\gui"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -111,7 +111,7 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Запустить {#MyAppName}
 Type: filesandordirs; Name: "{app}\__pycache__"
 Type: filesandordirs; Name: "{app}\scanner\__pycache__"
 Type: filesandordirs; Name: "{app}\chunking\__pycache__"
-Type: filesandordirs; Name: "{app}\gemini\__pycache__"
+Type: filesandordirs; Name: "{app}\gigachat_api\__pycache__"
 Type: filesandordirs; Name: "{app}\processing\__pycache__"
 Type: filesandordirs; Name: "{app}\output\__pycache__"
 Type: filesandordirs; Name: "{app}\gui\__pycache__"

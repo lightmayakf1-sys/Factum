@@ -1,4 +1,4 @@
-"""Конфигурация приложения Factum."""
+"""Конфигурация приложения FactumG (GigaChat)."""
 
 import json
 import os
@@ -23,10 +23,11 @@ SUPPORTED_EXTENSIONS = {
     "txt": "Текст",
 }
 
-FIXED_MODEL = "gemini-2.5-pro"
+FIXED_MODEL = "GigaChat-Max"
 
 DEFAULT_CONFIG = {
-    "api_key": "",
+    "credentials": "",  # base64(client_id:client_secret)
+    "scope": "GIGACHAT_API_PERS",
     "model": FIXED_MODEL,
     "chunk_size": 10,
     "overlap": 2,

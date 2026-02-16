@@ -9,8 +9,8 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from config import load_config, FIXED_MODEL
 from scanner.folder_scanner import ScannedFile, scan_path
 from chunking.chunk_manager import create_chunks, Chunk
-from gemini.client import GeminiClient
-from gemini.schema import ChunkExtraction, CHECKLIST_FIELDS
+from gigachat_api.client import GigaChatClient
+from gigachat_api.schema import ChunkExtraction, CHECKLIST_FIELDS
 from processing.aggregator import aggregate_extractions, resolve_aggregated, apply_verification
 from processing.validator import validate_completeness
 from output.docx_generator import generate_card
@@ -61,16 +61,17 @@ class PipelineWorker(QThread):
 
     def _run_pipeline(self):
         config = load_config()
-        api_key = config.get("api_key", "")
+        credentials = config.get("credentials", "")
+        scope = config.get("scope", "GIGACHAT_API_PERS")
         model = FIXED_MODEL
         chunk_size = config.get("chunk_size", 7)
         overlap = config.get("overlap", 2)
 
-        if not api_key:
-            self.finished.emit(False, "", "API ключ не настроен. Откройте Настройки.")
+        if not credentials:
+            self.finished.emit(False, "", "Credentials не настроены. Откройте Настройки.")
             return
 
-        client = GeminiClient(api_key=api_key, model=model)
+        client = GigaChatClient(credentials=credentials, model=model, scope=scope)
 
         # === ЭТАП 1: ПОДГОТОВКА ЧАНКОВ ===
         self.progress.emit(1, 0, 1, "Подготовка чанков...")
@@ -250,7 +251,7 @@ def _resolved_to_json(resolved: dict) -> str:
 
 def _generate_html_preview(resolved: dict, notes: list[str]) -> str:
     """Сгенерировать HTML-превью для отображения в GUI."""
-    from gemini.schema import SECTION_GROUPS
+    from gigachat_api.schema import SECTION_GROUPS
     from output.canonical import source_display, missing_param_note
     from output.formatter import format_value
 
@@ -345,7 +346,7 @@ def _html_conflict_value(ev) -> str:
 
 def _html_notes_section(html: list, resolved: dict, extra_notes: list[str]):
     """Секция ПРИМЕЧАНИЯ в HTML-превью с структурированными конфликтами."""
-    from gemini.schema import CHECKLIST_FIELDS as CK_FIELDS
+    from gigachat_api.schema import CHECKLIST_FIELDS as CK_FIELDS
     from output.canonical import source_display, missing_param_note
     from output.formatter import format_value
 

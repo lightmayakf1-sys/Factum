@@ -10,7 +10,7 @@ from chunking.pdf_chunker import split_pdf, PdfChunk
 
 @dataclass
 class Chunk:
-    """Универсальный чанк для отправки в Gemini API."""
+    """Универсальный чанк для отправки в LLM API."""
     source_file: str
     source_type: str  # Паспорт, Руководство, Чертёж, Документ
     file_format: str  # PDF, Изображение, DOCX, Excel, CSV, Текст

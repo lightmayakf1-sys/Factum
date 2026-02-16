@@ -1,8 +1,8 @@
 # ТЕХНИЧЕСКОЕ ЗАДАНИЕ
 
-## Приложение "FactumG" — Анализ паспортов промышленного оборудования (GigaChat)
+## Приложение "Factum" — Анализ паспортов промышленного оборудования
 
-**Версия документа:** 3.0 (GigaChat)
+**Версия документа:** 2.0
 **Дата:** февраль 2026
 
 ---
@@ -11,7 +11,7 @@
 
 ### 1.1. Назначение и область применения
 
-**FactumG** — настольное GUI-приложение для автоматизированного извлечения технических параметров из документации на промышленное оборудование (паспорта, руководства, чертежи, каталоги, datasheet'ы) и формирования структурированных DOCX-карточек.
+**Factum** — настольное GUI-приложение для автоматизированного извлечения технических параметров из документации на промышленное оборудование (паспорта, руководства, чертежи, каталоги, datasheet'ы) и формирования структурированных DOCX-карточек.
 
 **Решаемая проблема:** Ручной нормоконтроль (анализ документации оборудования, заполнение карточек) занимает часы работы инженера. Приложение автоматизирует этот процесс до минут, извлекая 44 технических параметра (чек-лист A.1–H.4) с привязкой к источникам.
 
@@ -21,7 +21,7 @@
 - Загрузка документов: PDF, изображения, DOCX, Excel, CSV, TXT (файлы и папки, drag-and-drop)
 - Автоматическое разбиение PDF на чанки с перекрытием (overlap) для предотвращения потери данных на границах страниц
 - Автоматическое определение контекста оборудования (тип, подсистемы, класс мощности) для повышения точности извлечения
-- Извлечение 44 параметров через GigaChat API (GigaChat-Max) с привязкой к страницам и цитатам
+- Извлечение 44 параметров через Google Gemini API с привязкой к страницам и цитатам
 - Дедупликация overlap-дублей и разрешение конфликтов между источниками по иерархии приоритетов
 - Верификация данных (поиск пропусков, конфликтов, косвенных параметров, логическая непротиворечивость)
 - Генерация DOCX-карточки с таблицами, источниками, примечаниями
@@ -33,7 +33,7 @@
 |------------|--------|------------|
 | Python | 3.14 | Язык разработки |
 | PyQt6 | >= 6.6 | GUI-фреймворк |
-| gigachat | >= 0.1 | GigaChat API SDK |
+| google-genai | >= 1.0 | Google Gemini API SDK |
 | python-docx | >= 1.0 | Генерация DOCX |
 | PyMuPDF (fitz) | >= 1.24 | Разбиение PDF на чанки |
 | pydantic | >= 2.0 | Модели данных, валидация JSON |
@@ -44,8 +44,8 @@
 
 - **ОС:** Windows 10/11
 - **Python 3.14** установлен в `C:\Python314\`
-- **Интернет-доступ** для GigaChat API
-- **Credentials** GigaChat (base64 от client_id:client_secret из личного кабинета)
+- **Интернет-доступ** для Google Gemini API
+- **API-ключ** Google AI Studio (бесплатный или платный)
 
 ---
 
@@ -86,11 +86,11 @@ Factum/
 │   ├── pdf_chunker.py           # Разбиение PDF на чанки (PyMuPDF)
 │   └── image_chunker.py         # Placeholder (логика в chunk_manager.py)
 │
-├── gigachat_api/
+├── gemini/
 │   ├── __init__.py              # (пустой)
 │   ├── schema.py                # Pydantic-модели: SourceRef, ExtractedValue, ChunkExtraction
-│   ├── prompts.py               # Системные промпты для GigaChat API
-│   └── client.py                # Обёртка GigaChat API: upload, retry, парсинг, fallback
+│   ├── prompts.py               # Системные промпты для Gemini API
+│   └── client.py                # Обёртка Gemini API: retry, парсинг, fallback
 │
 ├── processing/
 │   ├── __init__.py              # (пустой)
@@ -108,7 +108,7 @@ Factum/
 └── gui/
     ├── __init__.py              # (пустой)
     ├── main_window.py           # Главное окно (файлы, прогресс, превью)
-    ├── settings_dialog.py       # Диалог настроек (credentials, scope, размер чанка)
+    ├── settings_dialog.py       # Диалог настроек (API ключ, размер чанка)
     ├── file_list_widget.py      # Placeholder (логика в main_window.py)
     ├── progress_widget.py       # Placeholder (логика в main_window.py)
     └── preview_widget.py        # Placeholder (логика в main_window.py)
@@ -128,18 +128,18 @@ main.py / run_console.py
               │     ├── scanner/folder_scanner.py
               │     ├── scanner/file_classifier.py
               │     └── chunking/pdf_chunker.py
-              ├── gigachat_api/client.py
-              │     ├── gigachat_api/schema.py
-              │     ├── gigachat_api/prompts.py
+              ├── gemini/client.py
+              │     ├── gemini/schema.py
+              │     ├── gemini/prompts.py
               │     └── chunking/chunk_manager.py
               ├── processing/aggregator.py
-              │     ├── gigachat_api/schema.py
+              │     ├── gemini/schema.py
               │     ├── chunking/chunk_manager.py
               │     └── processing/conflict_resolver.py
               ├── processing/validator.py
-              │     └── gigachat_api/schema.py
+              │     └── gemini/schema.py
               └── output/docx_generator.py
-                    ├── gigachat_api/schema.py
+                    ├── gemini/schema.py
                     ├── output/canonical.py
                     └── output/formatter.py
 ```
@@ -165,7 +165,7 @@ class SourceRef(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _nulls_to_defaults(cls, data):
-        """Модель может вернуть null для строковых полей — заменяем на ''."""
+        """Gemini может вернуть null для строковых полей — заменяем на ''."""
         if isinstance(data, dict):
             for key in ("file", "doc_type", "section", "quote", "confidence"):
                 if key in data and data[key] is None:
@@ -173,7 +173,7 @@ class SourceRef(BaseModel):
         return data
 ```
 
-> **КРИТИЧНО:** Двойная защита от None: 1) `default=""` для случая, когда модель не возвращает поле; 2) `@model_validator(mode="before")` для случая, когда модель возвращает `null` явно (Pydantic `default` не срабатывает, если ключ присутствует со значением None).
+> **КРИТИЧНО:** Двойная защита от None: 1) `default=""` для случая, когда Gemini не возвращает поле; 2) `@model_validator(mode="before")` для случая, когда Gemini возвращает `null` явно (Pydantic `default` не срабатывает, если ключ присутствует со значением None).
 
 ### 3.2. ConflictEntry — одна конфликтующая позиция
 
@@ -201,7 +201,7 @@ class ExtractedValue(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _nulls_to_defaults(cls, data):
-        """Модель может вернуть null для строковых полей — заменяем на ''."""
+        """Gemini может вернуть null для строковых полей — заменяем на ''."""
         if isinstance(data, dict):
             for key in ("value", "status", "note"):
                 if key in data and data[key] is None:
@@ -451,21 +451,20 @@ SUPPORTED_EXTENSIONS = {
 }
 ```
 
-### 4.3. FIXED_MODEL — фиксированная модель GigaChat
+### 4.3. FIXED_MODEL — фиксированная модель Gemini
 
 ```python
-FIXED_MODEL = "GigaChat-Max"
+FIXED_MODEL = "gemini-2.5-pro"
 ```
 
-Выбор модели убран из интерфейса. Используется единственная фиксированная модель `GigaChat-Max` для максимального качества извлечения.
+Выбор модели убран из интерфейса. Используется единственная фиксированная модель `gemini-2.5-pro` для максимального качества извлечения.
 
 ### 4.4. DEFAULT_CONFIG
 
 ```python
 DEFAULT_CONFIG = {
-    "credentials": "",        # base64(client_id:client_secret)
-    "scope": "GIGACHAT_API_PERS",  # или GIGACHAT_API_B2B / GIGACHAT_API_CORP
-    "model": FIXED_MODEL,    # Ссылается на FIXED_MODEL = "GigaChat-Max"
+    "api_key": "",
+    "model": FIXED_MODEL,    # Ссылается на FIXED_MODEL = "gemini-2.5-pro"
     "chunk_size": 10,         # Было 7 — увеличено для оптимального баланса
     "overlap": 2,             # Перекрытие чанков (страниц) — предотвращает потерю данных на границах
     "output_dir": "",
@@ -514,12 +513,12 @@ MIME_TYPES = {
 Список чанков (Chunk[])
     |
 [Этап 2: КОНТЕКСТ ОБОРУДОВАНИЯ]      <-- НОВЫЙ
-    | Первые чанки каждого файла -> GigaChat API -> equipment_context
+    | Первые чанки каждого файла -> Gemini API -> equipment_context
     v
 Контекст: тип, подсистемы, класс мощности, тип питания
     |
 [Этап 3: ИЗВЛЕЧЕНИЕ]
-    | Для каждого чанка: GigaChat API + equipment_context -> ChunkExtraction
+    | Для каждого чанка: Gemini API + equipment_context -> ChunkExtraction
     v
 Список извлечений: (Chunk, ChunkExtraction)[]
     |
@@ -529,7 +528,7 @@ MIME_TYPES = {
 Финальные данные: dict[field_name -> ExtractedValue | None]
     |
 [Этап 5: ВЕРИФИКАЦИЯ]
-    | GigaChat + equipment_context: полнота, конфликты, косвенные, логика
+    | Gemini + equipment_context: полнота, конфликты, косвенные, логика
     v
 Обновлённые данные + примечания
     |
@@ -619,7 +618,7 @@ IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "bmp", "tiff", "tif"}
 
 ### 5.3. Этап 2: Определение контекста оборудования
 
-Новый этап, добавленный для повышения точности извлечения параметров. GigaChat анализирует начальные страницы загруженных файлов и определяет тип оборудования, подсистемы и другие характеристики. **Ограничение GigaChat:** только 1 файл на запрос, поэтому загружается только первый PDF-чанк, описания остальных файлов передаются текстом.
+Новый этап, добавленный для повышения точности извлечения параметров. Gemini анализирует начальные страницы всех загруженных файлов и определяет тип оборудования, подсистемы и другие характеристики.
 
 #### 5.3.1. _get_first_chunks(chunks) -> list[Chunk]
 
@@ -636,21 +635,18 @@ def _get_first_chunks(chunks: list[Chunk]) -> list[Chunk]:
     return result
 ```
 
-#### 5.3.2. GigaChatClient.determine_equipment_context(first_chunks)
+#### 5.3.2. GeminiClient.determine_equipment_context(first_chunks)
 
 ```python
 def determine_equipment_context(self, first_chunks: list[Chunk]) -> dict | None:
 ```
 
 Алгоритм:
-1. Находит первый бинарный чанк, загружает в хранилище GigaChat → `file_id`
-2. Текстовые чанки и описания остальных файлов добавляет в промпт
-3. Формирует `make_context_prompt(file_names)`
-4. Вызывает `_call_with_retry(system_prompt=CONTEXT_SYSTEM_PROMPT, user_content=full_prompt, file_id=file_id)`
-5. Возвращает dict с 7 полями: `equipment_type`, `equipment_name`, `purpose`, `subsystems`, `power_class`, `supply_type`, `notes`
-6. При ошибке возвращает `None`
-
-> **Ограничение GigaChat:** только 1 документ на запрос. Если несколько файлов — загружается первый PDF, остальные описываются текстом.
+1. Для каждого первого чанка формирует Part (текст или bytes)
+2. Добавляет `make_context_prompt(file_names)` последним
+3. Вызывает `_call_with_retry(system_prompt=CONTEXT_SYSTEM_PROMPT, parts=parts)`
+4. Возвращает dict с 7 полями: `equipment_type`, `equipment_name`, `purpose`, `subsystems`, `power_class`, `supply_type`, `notes`
+5. При ошибке возвращает `None`
 
 #### 5.3.3. _format_context(ctx: dict) -> str
 
@@ -676,39 +672,31 @@ def _format_context(ctx: dict) -> str:
 
 #### 5.3.4. Graceful fallback
 
-Если GigaChat не вернул контекст (None), pipeline продолжает работу **без контекста**: `equipment_context = ""`. Это гарантирует обратную совместимость.
+Если Gemini не вернул контекст (None), pipeline продолжает работу **без контекста**: `equipment_context = ""`. Это гарантирует обратную совместимость.
 
-### 5.4. Этап 3: Извлечение параметров через GigaChat
+### 5.4. Этап 3: Извлечение параметров через Gemini
 
-#### 5.4.1. GigaChatClient
+#### 5.4.1. GeminiClient
 
 ```python
-from gigachat import GigaChat
-from gigachat.models import Chat, Messages, MessagesRole
-from gigachat.exceptions import GigaChatException
-
-class GigaChatClient:
-    def __init__(self, credentials: str, model: str = "GigaChat-Max",
-                 scope: str = "GIGACHAT_API_PERS"):
-        self.giga = GigaChat(
-            credentials=credentials, scope=scope,
-            model=model, verify_ssl_certs=False,
-        )
+class GeminiClient:
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
+        self.client = genai.Client(api_key=api_key)
         self.model = model
         self.last_error: str = ""  # Для отображения ошибок в GUI
 ```
 
-> **Отличие от Gemini-версии:** GigaChat использует OAuth 2.0 (SDK обновляет токен автоматически), файлы загружаются в хранилище GigaChat (а не inline через bytes), и на каждый запрос допускается только 1 документ.
+> **Примечание:** Дефолтная модель `gemini-2.5-flash` в конструкторе, но `worker.py` всегда передаёт `FIXED_MODEL = "gemini-2.5-pro"`.
 
 #### 5.4.2. extract_from_chunk(chunk: Chunk, equipment_context: str = "") -> ChunkExtraction | None
 
 Алгоритм:
 
 1. Формирует `user_prompt` через `make_extraction_prompt(equipment_context=equipment_context)`
-2. Обработка данных:
-   - Если `chunk.data` — строка (текст): `full_prompt = f"Содержимое документа:\n\n{chunk.data}\n\n---\n\n{user_prompt}"`, `file_id = None`
-   - Если `chunk.data` — bytes: загружает в хранилище через `_upload_bytes(chunk.data, chunk.mime_type)` → `file_id`, `full_prompt = user_prompt`
-3. Вызывает `_call_with_retry(system_prompt=EXTRACTION_SYSTEM_PROMPT, user_content=full_prompt, file_id=file_id)`
+2. Формирует `parts`:
+   - Если `chunk.data` — строка (текст): один `Part.from_text(text=f"Содержимое документа:\n\n{chunk.data}\n\n---\n\n{user_prompt}")`
+   - Если `chunk.data` — bytes: `Part.from_bytes(data=chunk.data, mime_type=chunk.mime_type)` + `Part.from_text(text=user_prompt)`
+3. Вызывает `_call_with_retry(system_prompt=EXTRACTION_SYSTEM_PROMPT, parts=parts)`
 4. Если ответ `None` — возвращает `None`
 5. **Fallback (список -> словарь):** Если `raw` — list, конвертирует через `_convert_list_to_dict(raw)`
 6. **Заполнение source из метаданных чанка:** Для каждого поля в `raw`:
@@ -716,7 +704,7 @@ class GigaChatClient:
    - Если `source` — dict и `doc_type` пуст: `src["doc_type"] = chunk.source_type`
    - Если `source` — None: создаёт `{"file": chunk.source_file, "doc_type": chunk.source_type}`
 7. Валидирует через `ChunkExtraction.model_validate(raw)`
-8. При ошибке валидации: `self.last_error = f"Невалидный JSON от GigaChat: {e}"`, возвращает `None`
+8. При ошибке валидации: `self.last_error = f"Невалидный JSON от Gemini: {e}"`, возвращает `None`
 
 #### 5.4.3. Маппинг param_id -> field_name
 
@@ -751,7 +739,7 @@ def _convert_list_to_dict(raw_list: list) -> dict:
     return result
 ```
 
-#### 5.4.5. _call_with_retry(system_prompt, user_content, file_id=None) -> dict | None
+#### 5.4.5. _call_with_retry(system_prompt, parts) -> dict | None
 
 **Константы:**
 - `MAX_RETRIES = 3`
@@ -760,27 +748,33 @@ def _convert_list_to_dict(raw_list: list) -> dict:
 **Алгоритм:**
 1. `self.last_error = ""`
 2. Цикл `attempt` от 0 до `MAX_RETRIES - 1`:
-   - Формирует `messages`:
-     - `Messages(role=MessagesRole.SYSTEM, content=system_prompt)`
-     - `Messages(role=MessagesRole.USER, content=user_content, attachments=[file_id])` (если file_id)
-   - Формирует `Chat(messages=messages, model=self.model, temperature=0.1, function_call="auto")` (function_call только при file_id)
-   - Вызов `self.giga.chat(chat)`
-   - Если `response.choices[0].message.content` пуст: `self.last_error = "Пустой ответ от GigaChat"`, continue
-   - Парсинг JSON: `json.loads(text)`
-   - **Fallback:** Если `JSONDecodeError` — удалить обёртку ` ```json ... ``` `
-   - **При 422 (GigaChatException):** PDF слишком большой — не повторять, вернуть `None`
-   - При других ошибках: задержка `RETRY_DELAY_BASE * (2 ** attempt)` = 5с, 10с, 20с
+   - Вызов `client.models.generate_content()`:
+     - `model`: self.model
+     - `contents`: `[types.Content(role="user", parts=parts)]`
+     - `config`: `types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.1, response_mime_type="application/json")`
+   - **ВАЖНО:** НЕ использовать `response_schema`! (Схема слишком сложная для Gemini)
+   - Если `response.text` пуст: `self.last_error = "Пустой ответ от Gemini"`, continue
+   - Парсинг JSON: `json.loads(response.text)`
+   - **Fallback:** Если `JSONDecodeError` — удалить обёртку ` ```json ... ``` `:
+     ```python
+     text = response.text.strip()
+     if text.startswith("```json"): text = text[7:]
+     if text.startswith("```"): text = text[3:]
+     if text.endswith("```"): text = text[:-3]
+     return json.loads(text.strip())
+     ```
+   - При ошибке: задержка `RETRY_DELAY_BASE * (2 ** attempt)` = 5с, 10с, 20с
    - Сохраняет ошибку в `self.last_error`
 3. Если все попытки исчерпаны: возвращает `None`
 
 #### 5.4.6. verify_extraction(aggregated_json, chunks, equipment_context="") -> dict | None
 
 1. Формирует `user_prompt` через `make_verification_prompt(aggregated_json, equipment_context=equipment_context)`
-2. Обработка чанков:
-   - Текстовые: добавляет в `text_parts`
-   - Бинарные: загружает первый чанк в хранилище → `file_id` (лимит `max_upload_size = 40 MB`), остальные пропускаются (GigaChat: 1 файл на запрос)
-3. Собирает `full_prompt = text_parts + user_prompt`
-4. Вызывает `_call_with_retry(system_prompt=VERIFICATION_SYSTEM_PROMPT, user_content=full_prompt, file_id=file_id)`
+2. Формирует `parts` из всех чанков:
+   - Текстовые: `Part.from_text(text=f"--- {chunk.source_file} ({chunk.page_range_display}) ---\n{chunk.data}\n")`
+   - Бинарные: `Part.from_bytes(data=chunk.data, mime_type=chunk.mime_type)` (с лимитом `max_upload_size = 40 MB`)
+3. Добавляет `Part.from_text(text=user_prompt)` последним
+4. Вызывает `_call_with_retry(system_prompt=VERIFICATION_SYSTEM_PROMPT, parts=parts)`
 
 ### 5.5. Этап 4: Агрегация и разрешение конфликтов
 
@@ -960,7 +954,7 @@ def sort_key(v: ExtractedValue) -> tuple:
 
 #### 5.6.2. apply_verification()
 
-Обрабатывает 6 категорий из ответа GigaChat (в порядке обработки):
+Обрабатывает 6 категорий из ответа Gemini (в порядке обработки):
 
 | Категория | Действие |
 |-----------|----------|
@@ -1000,7 +994,7 @@ for item in verification.get("corrections", []):
 
 ---
 
-## 6. ПРОМПТЫ GigaChat API (ДОСЛОВНО)
+## 6. ПРОМПТЫ GEMINI API (ДОСЛОВНО)
 
 > **Это ключевой раздел.** Промпты определяют качество извлечения. Воспроизводить ДОСЛОВНО.
 
@@ -1586,7 +1580,7 @@ progress_bar.setValue(min(overall, 100))
 - После ошибки: btn_analyze=enabled, status красный
 
 **Кнопка "Анализировать":**
-1. Проверяет наличие файлов и credentials (при отсутствии — `QMessageBox.warning` с текстом: `"Укажите credentials GigaChat в Настройках\nили в файле ~/.factum/config.json (поле \"credentials\")."`)
+1. Проверяет наличие файлов и API-ключа (при отсутствии ключа — `QMessageBox.warning` с текстом: `"Укажите API ключ Google Gemini в файле конфигурации\n(~/.factum/config.json, поле \"api_key\")."`)
 2. Показывает `QFileDialog.getSaveFileName()` (по умолчанию `"Карточка_оборудования.docx"`)
 3. Если пользователь отменил — возврат
 4. Создаёт `PipelineWorker(self.files, Path(save_path))` и запускает
@@ -1606,15 +1600,14 @@ progress_bar.setValue(min(overall, 100))
 
 ### 11.2. SettingsDialog (gui/settings_dialog.py)
 
-> **Примечание:** Диалог настроек сохранён в файле `gui/settings_dialog.py`, но **не доступен из UI** — кнопка «Настройки» удалена. Credentials настраиваются через файл `~/.factum/config.json`. Код диалога сохранён для возможного будущего использования.
+> **Примечание:** Диалог настроек сохранён в файле `gui/settings_dialog.py`, но **не доступен из UI** — кнопка «Настройки» удалена. API ключ настраивается через файл `~/.factum/config.json`. Код диалога сохранён для возможного будущего использования.
 
 **Класс:** `SettingsDialog(QDialog)`
 - Заголовок: `"Настройки"`, minWidth=500
 - Импорт: `from config import load_config, save_config, FIXED_MODEL`
 
-**Группа "GigaChat API":**
-- Credentials: `QLineEdit`, EchoMode.Password, placeholder `"base64(client_id:client_secret) из личного кабинета"`
-- Scope: `QComboBox` с вариантами: GIGACHAT_API_PERS / GIGACHAT_API_B2B / GIGACHAT_API_CORP
+**Группа "Google Gemini API":**
+- API ключ: `QLineEdit`, EchoMode.Password, placeholder `"Вставьте API ключ из Google AI Studio"`
 - Модель: `QLabel(f"<b>{FIXED_MODEL}</b>")` (нередактируемая — выбор модели убран из интерфейса)
 
 **Группа "Обработка документов":**
@@ -1623,7 +1616,7 @@ progress_bar.setValue(min(overall, 100))
 
 **Кнопки:** "Сохранить" + "Отмена"
 
-**Сохранение (_save):** Сохраняет `credentials`, `scope` и `chunk_size` → `save_config(config)` → `accept()`. Модель НЕ сохраняется (используется `FIXED_MODEL`).
+**Сохранение (_save):** Сохраняет только `api_key` и `chunk_size` → `save_config(config)` → `accept()`. Модель НЕ сохраняется (используется `FIXED_MODEL`).
 
 ### 11.3. PipelineWorker (worker.py)
 
@@ -1758,7 +1751,7 @@ echo   (требуются права администратора)
 echo ============================================
 echo.
 
-C:\Python314\python.exe -m pip install --force-reinstall PyQt6 pydantic gigachat pint python-docx PyMuPDF charset-normalizer
+C:\Python314\python.exe -m pip install --force-reinstall PyQt6 pydantic google-genai pint python-docx PyMuPDF charset-normalizer
 
 echo.
 if %errorlevel% equ 0 (
@@ -1800,7 +1793,7 @@ pause
 | Сжатие | UPX включён |
 | Результат | `installer/dist/Factum.exe` |
 
-**Hidden imports**: все модули проекта (`config`, `worker`, `scanner.*`, `chunking.*`, `gigachat_api.*`, `processing.*`, `output.*`, `gui.*`), зависимости GigaChat SDK (`gigachat`, `gigachat.models`, `gigachat.exceptions`, `httpx`, `httpcore`), Pydantic v2, PyMuPDF (`fitz`), python-docx (`docx.*`, `lxml.*`), charset-normalizer, pint, PyQt6.
+**Hidden imports** (54 модуля): все модули проекта (`config`, `worker`, `scanner.*`, `chunking.*`, `gemini.*`, `processing.*`, `output.*`, `gui.*`), зависимости Google Gemini API (`google.genai.*`, `google.auth.*`), Pydantic v2, PyMuPDF (`fitz`), python-docx (`docx.*`, `lxml.*`), charset-normalizer, pint, PyQt6.
 
 **Excluded** (для уменьшения размера): `tkinter`, `unittest`, `test`, `xmlrpc`, `multiprocessing`, `lib2to3`.
 
@@ -1847,19 +1840,19 @@ installer/
 
 ## 13. ИЗВЕСТНЫЕ ПРОБЛЕМЫ И ОБХОДНЫЕ ПУТИ
 
-### 13.1. response_schema слишком сложная для LLM
+### 13.1. response_schema слишком сложная для Gemini
 
-**Проблема:** `ChunkExtraction` с 44 nullable полями и вложенными моделями слишком сложна для structured output API.
+**Проблема:** `ChunkExtraction` с 44 nullable полями и вложенными моделями вызывает `400 INVALID_ARGUMENT: too many states` при использовании `response_schema` в Gemini API.
 
 **Решение:** Использовать ТОЛЬКО `response_mime_type="application/json"` БЕЗ `response_schema`. Формат JSON задаётся в промпте, валидация через Pydantic.
 
-### 13.2. Модель возвращает список вместо словаря
+### 13.2. Gemini возвращает список вместо словаря
 
-**Проблема:** Иногда модель возвращает `[{param_id: "A.1", value: ...}]` вместо `{a1_name: ...}`.
+**Проблема:** Иногда Gemini возвращает `[{param_id: "A.1", value: ...}]` вместо `{a1_name: ...}`.
 
 **Решение:** Функция `_convert_list_to_dict()` с маппингом `_PARAM_ID_TO_FIELD`.
 
-### 13.3. Модель не заполняет file и doc_type в source
+### 13.3. Gemini не заполняет file и doc_type в source
 
 **Проблема:** Поля `source.file` и `source.doc_type` часто пустые в ответе.
 
@@ -1885,13 +1878,13 @@ installer/
 
 ### 13.6. JSON обёрнут в markdown-блок
 
-**Проблема:** Модель иногда оборачивает JSON в ` ```json ... ``` `.
+**Проблема:** Gemini иногда оборачивает JSON в ` ```json ... ``` `.
 
 **Решение:** Fallback-парсинг: удаление ` ```json ` и ` ``` ` обёрток перед `json.loads()`.
 
-### 13.7. Pydantic падает при null от модели (string_type validation)
+### 13.7. Pydantic падает при null от Gemini (string_type validation)
 
-**Проблема:** Модель возвращает `null` для строковых полей (например, `"section": null`). Pydantic `default=""` не срабатывает, т.к. ключ ПРИСУТСТВУЕТ в JSON со значением `None`. Результат: `ValidationError: Input should be a valid string [type=string_type]`.
+**Проблема:** Gemini возвращает `null` для строковых полей (например, `"section": null`). Pydantic `default=""` не срабатывает, т.к. ключ ПРИСУТСТВУЕТ в JSON со значением `None`. Результат: `ValidationError: Input should be a valid string [type=string_type]`.
 
 **Решение:** `@model_validator(mode="before")` в `SourceRef` и `ExtractedValue`:
 ```python
@@ -1909,7 +1902,7 @@ def _nulls_to_defaults(cls, data):
 
 ### 13.8. Overlap-дубли (ложные конфликты)
 
-**Проблема:** Overlap (перекрытие чанков) приводит к тому, что модель обрабатывает одни и те же страницы дважды. Результат: идентичные значения с близких страниц одного файла попадают в агрегацию как «разные» извлечения, создавая ложные конфликты.
+**Проблема:** Overlap (перекрытие чанков) приводит к тому, что Gemini обрабатывает одни и те же страницы дважды. Результат: идентичные значения с близких страниц одного файла попадают в агрегацию как «разные» извлечения, создавая ложные конфликты.
 
 **Решение:** `_deduplicate_overlaps(values, overlap=2)` в `resolve_aggregated()` — если два значения из одного файла и их страницы близки (разница ≤ overlap):
 - При точном совпадении — отбрасывает дубль (оставляется первое).
@@ -1920,7 +1913,7 @@ def _nulls_to_defaults(cls, data):
 ## 14. ЗАВИСИМОСТИ (requirements.txt)
 
 ```
-gigachat>=0.1
+google-genai>=1.0
 PyQt6>=6.6
 python-docx>=1.0
 PyMuPDF>=1.24

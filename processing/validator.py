@@ -1,6 +1,6 @@
 """Валидация полноты извлечённых данных (все A.1–H.4 присутствуют)."""
 
-from gemini.schema import ExtractedValue, CHECKLIST_FIELDS
+from gigachat_api.schema import ExtractedValue, CHECKLIST_FIELDS
 
 
 def validate_completeness(

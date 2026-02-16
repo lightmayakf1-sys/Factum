@@ -1,4 +1,4 @@
-"""Главное окно приложения Factum."""
+"""Главное окно приложения FactumG."""
 
 import os
 from pathlib import Path
@@ -19,7 +19,7 @@ from worker import PipelineWorker
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Factum - Анализ паспортов оборудования")
+        self.setWindowTitle("FactumG - Анализ паспортов оборудования")
         self.setMinimumSize(900, 700)
         self.setAcceptDrops(True)
 
@@ -167,11 +167,11 @@ class MainWindow(QMainWindow):
             return
 
         config = load_config()
-        if not config.get("api_key"):
+        if not config.get("credentials"):
             QMessageBox.warning(
-                self, "API ключ не настроен",
-                "Укажите API ключ Google Gemini в файле конфигурации\n"
-                "(~/.factum/config.json, поле \"api_key\")."
+                self, "Credentials не настроены",
+                "Укажите credentials GigaChat в Настройках\n"
+                "или в файле ~/.factum/config.json (поле \"credentials\")."
             )
             return
 

@@ -35,10 +35,10 @@ a = Analysis(
         'chunking.chunk_manager',
         'chunking.pdf_chunker',
         'chunking.image_chunker',
-        'gemini',
-        'gemini.schema',
-        'gemini.prompts',
-        'gemini.client',
+        'gigachat_api',
+        'gigachat_api.schema',
+        'gigachat_api.prompts',
+        'gigachat_api.client',
         'processing',
         'processing.aggregator',
         'processing.conflict_resolver',
@@ -53,15 +53,12 @@ a = Analysis(
         'gui.settings_dialog',
 
         # === Зависимости, часто пропускаемые PyInstaller ===
-        # google-genai
-        'google.genai',
-        'google.genai.types',
-        'google.genai.errors',
-        'google.genai._api_client',
-        'google.auth',
-        'google.auth.transport',
-        'google.auth.transport.requests',
-        'google.api_core',
+        # gigachat SDK
+        'gigachat',
+        'gigachat.models',
+        'gigachat.exceptions',
+        'httpx',
+        'httpcore',
 
         # pydantic
         'pydantic',

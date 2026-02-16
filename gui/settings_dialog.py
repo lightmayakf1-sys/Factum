@@ -1,8 +1,8 @@
-"""Диалог настроек: API ключ, модель, размер чанка."""
+"""Диалог настроек: GigaChat credentials, scope, размер чанка."""
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QSpinBox, QPushButton, QGroupBox, QFormLayout,
+    QSpinBox, QPushButton, QGroupBox, QFormLayout, QComboBox,
 )
 from PyQt6.QtCore import Qt
 
@@ -22,14 +22,26 @@ class SettingsDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # --- API ---
-        api_group = QGroupBox("Google Gemini API")
+        api_group = QGroupBox("GigaChat API")
         api_layout = QFormLayout()
 
-        self.api_key_input = QLineEdit()
-        self.api_key_input.setPlaceholderText("Вставьте API ключ из Google AI Studio")
-        self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.api_key_input.setText(self.config.get("api_key", ""))
-        api_layout.addRow("API ключ:", self.api_key_input)
+        self.credentials_input = QLineEdit()
+        self.credentials_input.setPlaceholderText("base64(client_id:client_secret) из личного кабинета")
+        self.credentials_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.credentials_input.setText(self.config.get("credentials", ""))
+        api_layout.addRow("Credentials:", self.credentials_input)
+
+        self.scope_combo = QComboBox()
+        self.scope_combo.addItems([
+            "GIGACHAT_API_PERS",
+            "GIGACHAT_API_B2B",
+            "GIGACHAT_API_CORP",
+        ])
+        current_scope = self.config.get("scope", "GIGACHAT_API_PERS")
+        idx = self.scope_combo.findText(current_scope)
+        if idx >= 0:
+            self.scope_combo.setCurrentIndex(idx)
+        api_layout.addRow("Scope:", self.scope_combo)
 
         model_label = QLabel(f"<b>{FIXED_MODEL}</b>")
         model_label.setStyleSheet("color: #333;")
@@ -73,7 +85,8 @@ class SettingsDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def _save(self):
-        self.config["api_key"] = self.api_key_input.text().strip()
+        self.config["credentials"] = self.credentials_input.text().strip()
+        self.config["scope"] = self.scope_combo.currentText()
         self.config["chunk_size"] = self.chunk_spin.value()
         save_config(self.config)
         self.accept()

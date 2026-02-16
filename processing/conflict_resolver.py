@@ -1,6 +1,6 @@
 """Разрешение конфликтов по иерархии источников (раздел 6 роли)."""
 
-from gemini.schema import ExtractedValue
+from gigachat_api.schema import ExtractedValue
 
 # Иерархия: чем ниже индекс, тем выше приоритет
 SOURCE_PRIORITY = {

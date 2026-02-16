@@ -1,7 +1,7 @@
 """Агрегация частичных извлечений из чанков в единую карточку."""
 
 import logging
-from gemini.schema import ChunkExtraction, ExtractedValue, ConflictEntry, SourceRef, CHECKLIST_FIELDS
+from gigachat_api.schema import ChunkExtraction, ExtractedValue, ConflictEntry, SourceRef, CHECKLIST_FIELDS
 from chunking.chunk_manager import Chunk
 from processing.conflict_resolver import resolve_conflict
 
@@ -67,8 +67,8 @@ def _are_ocr_variants(a: str, b: str) -> bool:
 def _deduplicate_overlaps(values: list[ExtractedValue], overlap: int = 2) -> list[ExtractedValue]:
     """Убрать дубли из перекрывающихся чанков одного файла.
 
-    При overlap чанков одни и те же страницы обрабатываются Gemini дважды.
-    Gemini недетерминистичен — может извлечь РАЗНЫЕ значения с одних страниц.
+    При overlap чанков одни и те же страницы обрабатываются моделью дважды.
+    Модель недетерминистична — может извлечь РАЗНЫЕ значения с одних страниц.
     Если два значения из одного файла, страницы близки (разница ≤ overlap)
     И значения совпадают — это повторное извлечение (дубль).
     Если значения РАЗНЫЕ (например, 380В и 220В с одной страницы) — оба сохраняем.

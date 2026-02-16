@@ -1,4 +1,4 @@
-"""Pydantic-модели для structured output Gemini API (чек-лист A.1–H.4)."""
+"""Pydantic-модели для structured output GigaChat API (чек-лист A.1–H.4)."""
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -15,7 +15,7 @@ class SourceRef(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _nulls_to_defaults(cls, data):
-        """Gemini может вернуть null для строковых полей — заменяем на ''."""
+        """Модель может вернуть null для строковых полей — заменяем на ''."""
         if isinstance(data, dict):
             for key in ("file", "doc_type", "section", "quote", "confidence"):
                 if key in data and data[key] is None:
@@ -44,7 +44,7 @@ class ExtractedValue(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _nulls_to_defaults(cls, data):
-        """Gemini может вернуть null для строковых полей — заменяем на ''."""
+        """Модель может вернуть null для строковых полей — заменяем на ''."""
         if isinstance(data, dict):
             for key in ("value", "status", "note"):
                 if key in data and data[key] is None:

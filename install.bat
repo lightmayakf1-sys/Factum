@@ -5,7 +5,7 @@ echo   (требуются права администратора)
 echo ============================================
 echo.
 
-C:\Python314\python.exe -m pip install --force-reinstall PyQt6 pydantic google-genai pint python-docx PyMuPDF charset-normalizer
+C:\Python314\python.exe -m pip install --force-reinstall PyQt6 pydantic gigachat pint python-docx PyMuPDF charset-normalizer
 
 echo.
 if %errorlevel% equ 0 (

@@ -8,7 +8,7 @@ from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 
-from gemini.schema import ExtractedValue, CHECKLIST_FIELDS, SECTION_GROUPS
+from gigachat_api.schema import ExtractedValue, CHECKLIST_FIELDS, SECTION_GROUPS
 from output.canonical import source_display, missing_param_note
 from output.formatter import format_value
 
